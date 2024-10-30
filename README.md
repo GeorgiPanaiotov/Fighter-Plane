@@ -16,6 +16,8 @@
 - Sound on/off switch
 - Music on/off switch
 - Bombs
+- Player selection
+- 12 Different plane variations and colors
 
 # How to start the game
 1. run `npm install` to install the necessary dependencies
