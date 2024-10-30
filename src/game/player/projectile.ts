@@ -18,16 +18,23 @@ export class Projectile {
     this.sprite.visible = true;
   }
 
+  getSprite() {
+    return this.sprite;
+  }
+
+  reverseSprite() {
+    this.sprite.scale.set(-0.15, 0.15);
+  }
+
+  removeProjectile() {
+    this.sprite.visible = false;
+  }
+
   getPosition() {
     return this.sprite.getBounds();
   }
 
-  update(app: Application, width: number) {
-    this.sprite.x += 30.0;
-
-    if (this.sprite.x >= width) {
-      this.isActive = false;
-      app.stage.removeChild(this.sprite);
-    }
+  update(speed: number) {
+    this.sprite.x += speed;
   }
 }
