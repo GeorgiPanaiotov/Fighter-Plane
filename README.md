@@ -12,6 +12,7 @@
 - Randomized enemy move patterns
 - Parallax effect for background
 - Explosion animation
+- Simple saving system which saves you high score in local storage
 
 # How to start the game
 1. run `npm install` to install the necessary dependencies
