@@ -24,7 +24,7 @@ export class Enemy {
 
   async initTextures(app: Application) {
     this.projectileTexture = await Assets.load(
-      "../assets/planes/torpedo/fire_ball_pink.png"
+      "../assets/planes/torpedo/fire_ball_1.png"
     );
 
     for (const planeTexture in Plane) {
@@ -84,6 +84,17 @@ export class Enemy {
     enemy.plane.visible = false;
   }
 
+  killAllEnemies() {
+    let killedEnemies = 0;
+    for (const enemy of this.planes) {
+      if (enemy.plane.visible) {
+        killedEnemies++;
+        enemy.plane.visible = false;
+      }
+    }
+    return killedEnemies;
+  }
+
   update(app: Application, deltaTime: number) {
     for (const enemy of this.planes) {
       const { plane, speed, movePattern, projectile } = enemy;
@@ -106,7 +117,9 @@ export class Enemy {
           plane.visible = false;
         }
       }
+
       projectile.update(-10);
+
       if (!projectile.isActive) {
         projectile.removeProjectile();
       }

@@ -1,10 +1,11 @@
 import { Application, Sprite, Assets, Texture } from "pixi.js";
-import { Plane } from "./playerTypes";
+import { Plane, PlayerPosition } from "./playerTypes";
 import { Projectile } from "./projectile";
 
 export class Player {
   private speed: number = 10;
-  private bombs: number = 10;
+  private bombTexture: Texture;
+  private booster: Sprite = new Sprite();
   private player: Sprite = new Sprite();
   private keys: { [key: string]: boolean } = {};
   private engineSound: HTMLAudioElement;
@@ -12,12 +13,17 @@ export class Player {
   private projectileTexture: Texture;
   private shootSound: HTMLAudioElement;
   private lastShot: number = 0;
+  private bombLastShot: number = 0;
+  private bombDelay: number = 2000;
   private delay: number = 400;
 
+  public bombs: number = 10;
   public isDead: boolean = false;
   public projectiles: Array<Projectile> = [];
+  public bomb: Projectile;
+  public playSound: boolean = true;
 
-  constructor(width: number) {
+  constructor() {
     this.engineSound = new Audio("../../assets/sounds/airplane_fly.ogg");
     this.engineSound.loop = true;
 
@@ -34,6 +40,8 @@ export class Player {
     window.addEventListener("keyup", (e) => {
       this.keys[e.code] = false;
       this.player.rotation = Math.PI / 360;
+
+      this.booster.visible = false;
       this.speedUpSound.pause();
       this.shootSound.pause();
     });
@@ -50,15 +58,26 @@ export class Player {
 
   async initTextures(app: Application, texture: Plane) {
     const playerTexture = await Assets.load(texture);
-    this.player = new Sprite(playerTexture);
+    const boosterTexture = await Assets.load(
+      "../../assets/planes/torpedo/booster.png"
+    );
+
+    this.player.texture = playerTexture;
     this.player.scale.set(0.1, 0.1);
+    this.player.visible = false;
+
+    this.booster.texture = boosterTexture;
+    this.booster.scale.set(0.3, 0.3);
+    this.booster.visible = false;
 
     this.projectileTexture = await Assets.load(
       "../../assets/planes/torpedo/fire_ball_1.png"
     );
+    this.bombTexture = await Assets.load(
+      "../../assets/planes/torpedo/torpedo_black.png"
+    );
 
-    this.player.visible = false;
-    app.stage.addChild(this.player);
+    app.stage.addChild(this.player, this.booster);
   }
 
   spawnPlayer() {
@@ -79,7 +98,10 @@ export class Player {
     }
     if (this.keys["ArrowRight"]) {
       this.player.x += this.speed;
-      this.speedUpSound.play();
+      this.addBoosterEffect({ x: this.player.x, y: this.player.y });
+      if (this.playSound) {
+        this.speedUpSound.play();
+      }
     }
     if (this.keys["Space"]) {
       const currentTime = performance.now();
@@ -91,9 +113,35 @@ export class Player {
           y: this.player.y + this.player.height / 2,
         });
         this.projectiles.push(projectile);
-        this.shootSound.play();
+        if (this.playSound) {
+          this.shootSound.play();
+        }
       }
     }
+    if (this.keys["KeyB"]) {
+      if (this.bombs >= 1) {
+        const currentTime = performance.now();
+        if (currentTime - this.bombLastShot >= this.bombDelay) {
+          this.bombLastShot = currentTime;
+          const newBomb = new Projectile(app, this.bombTexture);
+          newBomb.shoot({
+            x: this.player.x + this.player.width,
+            y: this.player.y + this.player.height / 2,
+          });
+          this.bomb = newBomb;
+          if (this.playSound) {
+            this.shootSound.play();
+          }
+          this.bombs--;
+        }
+      }
+    }
+  }
+
+  addBoosterEffect({ x, y }: PlayerPosition) {
+    this.booster.visible = true;
+    this.booster.x = x - this.player.width;
+    this.booster.y = y + this.player.height / 2;
   }
 
   handleBounds(maxWidth: number, maxHeight: number) {
@@ -114,7 +162,12 @@ export class Player {
   update(app: Application, maxWidth: number, maxHeight: number) {
     this.handleInput(app);
     this.handleBounds(maxWidth, maxHeight);
-    this.engineSound.play();
+    if (this.playSound) {
+      this.engineSound.play();
+    }
+    if (this.bomb) {
+      this.bomb.update(15.0);
+    }
 
     for (let projectile of this.projectiles) {
       projectile.update(30.0);

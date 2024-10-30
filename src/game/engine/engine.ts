@@ -27,7 +27,7 @@ export class Engine {
     this.app = new Application();
     this.explosion = new Explosion();
     this.clouds = new Cloud();
-    this.player = new Player(this.getWidth());
+    this.player = new Player();
     this.enemy = new Enemy(50, 500);
     this.bestScore = this.loadGame();
   }
@@ -82,6 +82,8 @@ export class Engine {
       alias: "menu",
       src: "./assets/ui/panel.png",
     });
+    const switchOffTexture = await Assets.load("./assets/ui/unchecked_box.png");
+    const switchOnTexture = await Assets.load("./assets/ui/checked_box.png");
 
     const bgSprite = new Background("./assets/background/background1.png");
     const bgSprite2 = new Background("./assets/background/background2.png");
@@ -111,17 +113,25 @@ export class Engine {
     await this.enemy.initTextures(this.getApp());
     this.enemy.loadSprites(this.getWidth(), this.getHeight());
 
-    this.ui = new UI(new Sprite(uiTexture), this.getApp());
-    this.ui.renderMainMenu(this.getWidth(), this.getHeight(), this.getApp());
+    this.ui = new UI(
+      new Sprite(uiTexture),
+      this.getApp(),
+      switchOffTexture,
+      switchOnTexture
+    );
+    this.ui.renderMainMenu(this.getWidth(), this.getHeight());
   }
 
-  startExplosion(position: Rectangle) {
+  startExplosion(position: Rectangle, scale: number) {
     this.animating = true;
     this.explosion.animation.forEach((pos) => {
       pos.x = position.x;
       pos.y = position.y;
+      pos.scale.set(scale, scale);
     });
-    this.explosion.playSound();
+    if (this.ui.stopSound()) {
+      this.explosion.playSound();
+    }
   }
 
   drawExplosion() {
@@ -151,6 +161,7 @@ export class Engine {
   update(deltaTime: number) {
     if (this.ui.startGame) {
       this.ui.removeMenu();
+      this.ui.renderInGameUI(this.finalScore, this.player.bombs);
       if (!this.player.isDead) {
         this.player.spawnPlayer();
       }
@@ -175,7 +186,7 @@ export class Engine {
               this.player.getPosition()
             )
           ) {
-            this.startExplosion(this.player.getPosition());
+            this.startExplosion(this.player.getPosition(), 0.1);
             this.player.killPlayer();
             this.enemy.killEnemy(enemyPlane);
             this.ui.startGame = false;
@@ -200,14 +211,30 @@ export class Engine {
             ) {
               this.finalScore++;
               this.enemy.killEnemy(enemyPlane);
-              this.startExplosion(projectile.getPosition());
+              this.startExplosion(projectile.getPosition(), 0.1);
               projectile.removeProjectile();
             }
           });
+          // Bomb VS Enemy
+          if (this.player.bomb) {
+            if (
+              this.checkCollision(
+                this.player.bomb.getPosition(),
+                this.enemy.getPosition(enemyPlane.plane)
+              )
+            ) {
+              const bomb = this.player.bomb;
+              this.startExplosion(bomb.getPosition(), 1.0);
+              bomb.removeProjectile();
+              this.finalScore += this.enemy.killAllEnemies();
+            }
+          }
         }
       });
 
       this.drawExplosion();
     }
+    this.ui.stopMusic();
+    this.player.playSound = this.ui.stopSound();
   }
 }

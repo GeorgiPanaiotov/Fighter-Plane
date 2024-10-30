@@ -1,5 +1,6 @@
-import { Application, Sprite, Text, TextStyle } from "pixi.js";
+import { Application, Sprite, Text, TextStyle, Texture } from "pixi.js";
 import { Menu } from "./uiTypes";
+import { Checkbox } from "./checkbox";
 
 export class UI {
   private title: Text;
@@ -18,13 +19,26 @@ export class UI {
     align: "center",
   });
   private playLabel: Text;
+  private musicSwitch: Checkbox;
+  private musicLabel: Text;
+  private soundSwitch: Checkbox;
+  private soundLabel: Text;
 
   public startGame: boolean = false;
-  public finalScore: Text;
+  public score: Text;
   public bestScore: Text;
+  public bombsAvailable: Text;
 
-  constructor(sprite: Sprite, app: Application) {
+  constructor(
+    sprite: Sprite,
+    app: Application,
+    switchOff: Texture,
+    switchOn: Texture
+  ) {
     this.playLabel = new Text({ text: "Play Game", style: this.defaultStyle });
+    this.musicLabel = new Text({ text: "Music", style: this.defaultStyle });
+    this.soundLabel = new Text({ text: "Sound", style: this.defaultStyle });
+
     this.panel = sprite;
     this.title = new Text({
       text: "Fighter Jet ",
@@ -36,11 +50,28 @@ export class UI {
       },
     });
 
-    this.finalScore = new Text({ text: "0", style: this.defaultStyle });
-    this.finalScore.visible = false;
+    this.score = new Text({ text: "0", style: this.defaultStyle });
+    this.score.visible = false;
     this.bestScore = new Text({ text: "0", style: this.defaultStyle });
     this.bestScore.visible = false;
-    app.stage.addChild(this.panel, this.title, this.finalScore, this.bestScore);
+    this.bombsAvailable = new Text({ text: "0", style: this.defaultStyle });
+    this.bombsAvailable.visible = false;
+
+    this.musicSwitch = new Checkbox(switchOn, switchOff, 0, 0);
+    this.soundSwitch = new Checkbox(switchOn, switchOff, 0, 0);
+
+    app.stage.addChild(
+      this.panel,
+      this.title,
+      this.score,
+      this.bestScore,
+      this.bombsAvailable,
+      this.musicSwitch.switch,
+      this.musicLabel,
+      this.playLabel,
+      this.soundLabel,
+      this.soundSwitch.switch
+    );
 
     this.mainSong = new Audio("../../assets/sounds/mainThemeSong.mp3");
     this.mainSong.loop = true;
@@ -50,12 +81,37 @@ export class UI {
     this.panel.visible = false;
     this.title.visible = false;
     this.playLabel.visible = false;
+    this.musicLabel.visible = false;
+    this.musicSwitch.switch.visible = false;
+    this.soundLabel.visible = false;
+    this.soundSwitch.switch.visible = false;
   }
 
-  renderMainMenu(width: number, height: number, app: Application) {
+  stopMusic() {
+    if (this.musicSwitch.getIsChecked()) {
+      this.mainSong.play();
+    } else {
+      this.mainSong.pause();
+    }
+  }
+
+  stopSound() {
+    if (this.soundSwitch.getIsChecked()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  renderMainMenu(width: number, height: number) {
     this.panel.visible = true;
     this.title.visible = true;
     this.playLabel.visible = true;
+    this.musicLabel.visible = true;
+    this.musicSwitch.switch.visible = true;
+    this.soundLabel.visible = true;
+    this.soundSwitch.switch.visible = true;
+
     this.panel.x = (width - this.panel.width) / 2;
     this.panel.y = height * 0.1;
 
@@ -80,20 +136,46 @@ export class UI {
       this.startGame = true;
     });
 
+    this.musicSwitch.switch.x = this.playLabel.x;
+    this.musicSwitch.switch.y = this.playLabel.y + 60;
+    this.musicLabel.x =
+      this.musicSwitch.switch.x + this.musicSwitch.switch.width + 20;
+    this.musicLabel.y = this.musicSwitch.switch.y;
+
+    this.soundSwitch.switch.x = this.playLabel.x;
+    this.soundSwitch.switch.y = this.playLabel.y + 120;
+    this.soundLabel.x =
+      this.soundSwitch.switch.x + this.soundSwitch.switch.width + 20;
+    this.soundLabel.y = this.soundSwitch.switch.y;
+
     this.mainSong.play();
-    app.stage.addChild(this.playLabel);
   }
 
   renderDeathMenu(finalScore: number, bestScore: number) {
+    this.bombsAvailable.visible = false;
     this.panel.visible = true;
-    this.finalScore.visible = true;
-    this.finalScore.text = `Your current score is: ${finalScore}`;
-    this.finalScore.x = this.panel.x + (this.panel.width - this.finalScore.width) / 2;
-    this.finalScore.y = this.panel.y + (this.panel.height - this.finalScore.height) / 1.5;
+    this.score.visible = true;
+    this.score.text = `Your current score is: ${finalScore}`;
+    this.score.x = this.panel.x + (this.panel.width - this.score.width) / 2;
+    this.score.y = this.panel.y + (this.panel.height - this.score.height) / 1.5;
 
     this.bestScore.visible = true;
     this.bestScore.text = `Best score: ${bestScore}`;
-    this.bestScore.x = this.panel.x + (this.panel.width - this.bestScore.width) / 2;
-    this.bestScore.y = this.panel.y + (this.panel.height - this.bestScore.height) / 3;
+    this.bestScore.x =
+      this.panel.x + (this.panel.width - this.bestScore.width) / 2;
+    this.bestScore.y =
+      this.panel.y + (this.panel.height - this.bestScore.height) / 3;
+  }
+
+  renderInGameUI(score: number, bombs: number) {
+    this.score.visible = true;
+    this.score.text = `Score: ${score}`;
+    this.score.x = 20;
+    this.score.y = 20;
+
+    this.bombsAvailable.visible = true;
+    this.bombsAvailable.text = `Bombs: ${bombs}`;
+    this.bombsAvailable.x = 20;
+    this.bombsAvailable.y = 60;
   }
 }
