@@ -8,13 +8,13 @@ export class UI {
   private panel: Sprite;
   private defaultStyle = new TextStyle({
     fontFamily: "Arial",
-    fontSize: 36,
+    fontSize: 48,
     fill: 0x000000,
     align: "center",
   });
   private hoverStyle = new TextStyle({
     fontFamily: "Arial",
-    fontSize: 36,
+    fontSize: 48,
     fill: 0xffcc00,
     align: "center",
   });
