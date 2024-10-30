@@ -3,16 +3,19 @@ import { Plane } from "./playerTypes";
 import { Projectile } from "./projectile";
 
 export class Player {
-  private fuel: number = 100;
   private speed: number = 10;
   private bombs: number = 10;
   private player: Sprite = new Sprite();
   private keys: { [key: string]: boolean } = {};
   private engineSound: HTMLAudioElement;
   private speedUpSound: HTMLAudioElement;
-  private projectiles: Array<Projectile> = [];
   private projectileTexture: Texture;
   private shootSound: HTMLAudioElement;
+  private lastShot: number = 0;
+  private delay: number = 400;
+
+  public isDead: boolean = false;
+  public projectiles: Array<Projectile> = [];
 
   constructor(width: number) {
     this.engineSound = new Audio("../../assets/sounds/airplane_fly.ogg");
@@ -36,6 +39,15 @@ export class Player {
     });
   }
 
+  killPlayer() {
+    this.player.visible = false;
+    this.isDead = true;
+  }
+
+  getPosition() {
+    return this.player.getBounds();
+  }
+
   async initTextures(app: Application, texture: Plane) {
     const playerTexture = await Assets.load(texture);
     this.player = new Sprite(playerTexture);
@@ -45,7 +57,12 @@ export class Player {
       "../../assets/planes/torpedo/fire_ball_1.png"
     );
 
+    this.player.visible = false;
     app.stage.addChild(this.player);
+  }
+
+  spawnPlayer() {
+    this.player.visible = true;
   }
 
   handleInput(app: Application) {
@@ -65,13 +82,17 @@ export class Player {
       this.speedUpSound.play();
     }
     if (this.keys["Space"]) {
-      const projectile = new Projectile(app, this.projectileTexture);
-      projectile.shoot({
-        x: this.player.x + this.player.width,
-        y: this.player.y + this.player.height / 2,
-      });
-      this.projectiles.push(projectile);
-      this.shootSound.play();
+      const currentTime = performance.now();
+      if (currentTime - this.lastShot >= this.delay) {
+        this.lastShot = currentTime;
+        const projectile = new Projectile(app, this.projectileTexture);
+        projectile.shoot({
+          x: this.player.x + this.player.width,
+          y: this.player.y + this.player.height / 2,
+        });
+        this.projectiles.push(projectile);
+        this.shootSound.play();
+      }
     }
   }
 
@@ -96,7 +117,7 @@ export class Player {
     this.engineSound.play();
 
     for (let projectile of this.projectiles) {
-      projectile.update(app, maxWidth);
+      projectile.update(30.0);
     }
 
     this.projectiles = this.projectiles.filter((x) => x.isActive);
