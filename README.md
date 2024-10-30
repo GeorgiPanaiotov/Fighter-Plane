@@ -23,5 +23,5 @@ Dependencies are purposely kept at minimum and only the necessary ones are actua
 
 
 # How to play
-**Arrow Keys** move the player accordingly (left, right, up and down)
-**SpaceBar** is used to shoot
+- **Arrow Keys** move the player accordingly (left, right, up and down)
+- **SpaceBar** is used to shoot
