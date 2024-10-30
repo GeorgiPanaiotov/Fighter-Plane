@@ -23,7 +23,8 @@
 
 If you want to build the game for production environments, you can run `npm run build`
 
-Dependencies are purposely kept at minimum and only the necessary ones are actually installed, that is **Typescript**, **PixiJS** and **Vite**
+Dependencies are purposely kept at minimum and only the necessary ones are actually installed, that is **Typescript**, **PixiJS** and **Vite** \
+All the configs are manually setup by me
 
 
 # How to play
