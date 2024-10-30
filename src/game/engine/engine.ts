@@ -6,6 +6,7 @@ import { Player } from "../player/player";
 import { Plane } from "../player/playerTypes";
 import { Enemy } from "../enemy";
 import { UI } from "../ui/ui";
+import { STORAGE_KEY } from "./engineTypes";
 
 export class Engine {
   private width = window.innerWidth;
@@ -20,6 +21,7 @@ export class Engine {
   private currentFrame: number = 0;
   private animating: boolean = false;
   private finalScore: number = 0;
+  private bestScore: number = 0;
 
   constructor() {
     this.app = new Application();
@@ -27,6 +29,34 @@ export class Engine {
     this.clouds = new Cloud();
     this.player = new Player(this.getWidth());
     this.enemy = new Enemy(50, 500);
+    this.bestScore = this.loadGame();
+  }
+
+  saveGame() {
+    try {
+      const jsonData = JSON.stringify({ score: this.finalScore });
+      localStorage.setItem(STORAGE_KEY, jsonData);
+      console.log("Game saved successfully.");
+    } catch (error) {
+      console.error("Failed to save game data:", error);
+    }
+  }
+
+  loadGame() {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const data: { score: number } = JSON.parse(savedData);
+        console.log("Game loaded successfully.");
+        return data.score;
+      } else {
+        console.log("No saved data found.");
+        return 0;
+      }
+    } catch (error) {
+      console.error("Failed to load game data:", error);
+      return 0;
+    }
   }
 
   getApp() {
@@ -150,7 +180,15 @@ export class Engine {
             this.enemy.killEnemy(enemyPlane);
             this.ui.startGame = false;
 
-            this.ui.renderDeathMenu(this.finalScore);
+            this.ui.renderDeathMenu(
+              this.finalScore,
+              this.finalScore >= this.bestScore
+                ? this.finalScore
+                : this.bestScore
+            );
+            if (this.finalScore >= this.bestScore) {
+              this.saveGame();
+            }
           }
           // Player shot VS Enemy
           this.player.projectiles.forEach((projectile) => {

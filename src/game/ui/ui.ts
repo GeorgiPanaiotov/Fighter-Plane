@@ -21,6 +21,7 @@ export class UI {
 
   public startGame: boolean = false;
   public finalScore: Text;
+  public bestScore: Text;
 
   constructor(sprite: Sprite, app: Application) {
     this.playLabel = new Text({ text: "Play Game", style: this.defaultStyle });
@@ -37,7 +38,9 @@ export class UI {
 
     this.finalScore = new Text({ text: "0", style: this.defaultStyle });
     this.finalScore.visible = false;
-    app.stage.addChild(this.panel, this.title, this.finalScore);
+    this.bestScore = new Text({ text: "0", style: this.defaultStyle });
+    this.bestScore.visible = false;
+    app.stage.addChild(this.panel, this.title, this.finalScore, this.bestScore);
 
     this.mainSong = new Audio("../../assets/sounds/mainThemeSong.mp3");
     this.mainSong.loop = true;
@@ -81,11 +84,16 @@ export class UI {
     app.stage.addChild(this.playLabel);
   }
 
-  renderDeathMenu(finalScore: number) {
+  renderDeathMenu(finalScore: number, bestScore: number) {
     this.panel.visible = true;
     this.finalScore.visible = true;
-    this.finalScore.text = `Your final score is: ${finalScore}`;
+    this.finalScore.text = `Your current score is: ${finalScore}`;
     this.finalScore.x = this.panel.x + (this.panel.width - this.finalScore.width) / 2;
-    this.finalScore.y = this.panel.y + (this.panel.height - this.finalScore.height) / 2;
+    this.finalScore.y = this.panel.y + (this.panel.height - this.finalScore.height) / 1.5;
+
+    this.bestScore.visible = true;
+    this.bestScore.text = `Best score: ${bestScore}`;
+    this.bestScore.x = this.panel.x + (this.panel.width - this.bestScore.width) / 2;
+    this.bestScore.y = this.panel.y + (this.panel.height - this.bestScore.height) / 3;
   }
 }
