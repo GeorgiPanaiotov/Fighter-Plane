@@ -20,3 +20,8 @@
 If you want to build the game for production environments, you can run `npm run build`
 
 Dependencies are purposely kept at minimum and only the necessary ones are actually installed, that is **Typescript**, **PixiJS** and **Vite**
+
+
+# How to play
+**Arrow Keys** move the player accordingly (left, right, up and down)
+**SpaceBar** is used to shoot
