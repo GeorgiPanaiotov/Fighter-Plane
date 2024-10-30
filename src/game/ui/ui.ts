@@ -1,6 +1,7 @@
-import { Application, Sprite, Text, TextStyle, Texture } from "pixi.js";
+import { Application, Sprite, Text, TextStyle, Texture, Assets } from "pixi.js";
 import { Menu } from "./uiTypes";
 import { Checkbox } from "./checkbox";
+import { Plane } from "../player/playerTypes";
 
 export class UI {
   private title: Text;
@@ -23,6 +24,10 @@ export class UI {
   private musicLabel: Text;
   private soundSwitch: Checkbox;
   private soundLabel: Text;
+  private planeSelection: Plane;
+  private allAvailablePlanes: Array<{ plane: Sprite; key: string }> = [];
+  private plane: number = 0;
+  private nextButton: Sprite;
 
   public startGame: boolean = false;
   public score: Text;
@@ -33,13 +38,28 @@ export class UI {
     sprite: Sprite,
     app: Application,
     switchOff: Texture,
-    switchOn: Texture
+    switchOn: Texture,
+    buttonTexture: Texture
   ) {
     this.playLabel = new Text({ text: "Play Game", style: this.defaultStyle });
     this.musicLabel = new Text({ text: "Music", style: this.defaultStyle });
     this.soundLabel = new Text({ text: "Sound", style: this.defaultStyle });
 
     this.panel = sprite;
+
+    this.nextButton = new Sprite(buttonTexture);
+    this.nextButton.visible = false;
+    this.nextButton.interactive = true;
+    this.nextButton.buttonMode = true;
+
+    this.nextButton.on("pointerdown", () => {
+      if (this.plane >= this.allAvailablePlanes.length) {
+        this.plane = 0;
+      }
+      this.plane++;
+      this.renderNewPlane(this.plane);
+    });
+
     this.title = new Text({
       text: "Fighter Jet ",
       style: {
@@ -70,11 +90,16 @@ export class UI {
       this.musicLabel,
       this.playLabel,
       this.soundLabel,
-      this.soundSwitch.switch
+      this.soundSwitch.switch,
+      this.nextButton
     );
 
     this.mainSong = new Audio("../../assets/sounds/mainThemeSong.mp3");
     this.mainSong.loop = true;
+  }
+
+  getPlaneSelection() {
+    return this.planeSelection;
   }
 
   removeMenu() {
@@ -85,6 +110,8 @@ export class UI {
     this.musicSwitch.switch.visible = false;
     this.soundLabel.visible = false;
     this.soundSwitch.switch.visible = false;
+    this.nextButton.visible = false;
+    this.allAvailablePlanes[this.plane].plane.visible = false;
   }
 
   stopMusic() {
@@ -101,6 +128,35 @@ export class UI {
     } else {
       return false;
     }
+  }
+
+  async loadPlanes(app: Application) {
+    for (const key in Plane) {
+      const planeTexturePath = Plane[key as keyof typeof Plane];
+
+      const texture = await Assets.load(planeTexturePath);
+      const plane = new Sprite(texture);
+      plane.scale.set(-0.1, 0.1);
+      plane.visible = false;
+      plane.x = (app.screen.width - plane.width) / 2;
+      plane.y = app.screen.height * 0.8;
+
+      app.stage.addChild(plane);
+      this.allAvailablePlanes.push({ plane, key });
+    }
+    this.planeSelection =
+      Plane[this.allAvailablePlanes[0].key as keyof typeof Plane];
+  }
+
+  renderNewPlane(index: number) {
+    this.allAvailablePlanes[index - 1 === -1 ? 0 : index - 1].plane.visible =
+      false;
+    this.allAvailablePlanes[index === 12 ? 0 : index].plane.visible = true;
+    this.planeSelection =
+      Plane[
+        this.allAvailablePlanes[index === 12 ? 0 : index]
+          .key as keyof typeof Plane
+      ];
   }
 
   renderMainMenu(width: number, height: number) {
@@ -147,6 +203,14 @@ export class UI {
     this.soundLabel.x =
       this.soundSwitch.switch.x + this.soundSwitch.switch.width + 20;
     this.soundLabel.y = this.soundSwitch.switch.y;
+
+    this.allAvailablePlanes[0].plane.visible = true;
+
+    this.nextButton.x =
+      this.allAvailablePlanes[0].plane.x +
+      this.allAvailablePlanes[0].plane.width;
+    this.nextButton.y = this.allAvailablePlanes[0].plane.y;
+    this.nextButton.visible = true;
 
     this.mainSong.play();
   }
