@@ -80,7 +80,10 @@ export class Player {
     app.stage.addChild(this.player, this.booster);
   }
 
-  spawnPlayer() {
+  async spawnPlayer(planeSelection: Plane) {
+    const playerTexture = await Assets.load(planeSelection);
+    this.player.texture = playerTexture;
+    this.player.scale.set(0.1, 0.1);
     this.player.visible = true;
   }
 

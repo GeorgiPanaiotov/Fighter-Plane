@@ -82,6 +82,9 @@ export class Engine {
       alias: "menu",
       src: "./assets/ui/panel.png",
     });
+
+    const buttonTexture = await Assets.load("./assets/ui/arrow.png");
+
     const switchOffTexture = await Assets.load("./assets/ui/unchecked_box.png");
     const switchOnTexture = await Assets.load("./assets/ui/checked_box.png");
 
@@ -117,8 +120,12 @@ export class Engine {
       new Sprite(uiTexture),
       this.getApp(),
       switchOffTexture,
-      switchOnTexture
+      switchOnTexture,
+      buttonTexture
     );
+
+    await this.ui.loadPlanes(this.app);
+
     this.ui.renderMainMenu(this.getWidth(), this.getHeight());
   }
 
@@ -158,12 +165,12 @@ export class Engine {
     );
   }
 
-  update(deltaTime: number) {
+  async update(deltaTime: number) {
     if (this.ui.startGame) {
       this.ui.removeMenu();
       this.ui.renderInGameUI(this.finalScore, this.player.bombs);
       if (!this.player.isDead) {
-        this.player.spawnPlayer();
+        await this.player.spawnPlayer(this.ui.getPlaneSelection());
       }
       const { bgSprite2, bgSprite3 } = this.background;
       bgSprite2.update(-1.0);
