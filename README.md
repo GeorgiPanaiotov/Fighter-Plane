@@ -13,6 +13,9 @@
 - Parallax effect for background
 - Explosion animation
 - Simple saving system which saves you high score in local storage
+- Sound on/off switch
+- Music on/off switch
+- Bombs
 
 # How to start the game
 1. run `npm install` to install the necessary dependencies
@@ -26,3 +29,4 @@ Dependencies are purposely kept at minimum and only the necessary ones are actua
 # How to play
 - **Arrow Keys** move the player accordingly (left, right, up and down)
 - **SpaceBar** is used to shoot
+- **B** is used to shoot a bomb that kills every enemy on screen, bombs are limited
